@@ -1,0 +1,74 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description"><title>POSIX 线程编程 | Hj's Blog</title><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/normalize/5.0.0/normalize.min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/0.6.2/pure-min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/0.6.2/grids-responsive-min.css"><link rel="stylesheet" type="text/css" href="/css/style.css?v=0.0.0"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css"><script type="text/javascript" src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="apple-touch-icon-precomposed" href="/apple-touch-icon.png"></head><body><div class="body_container"><div id="header"><div class="site-name"><h1 class="hidden">POSIX 线程编程</h1><a id="logo" href="/.">Hj's Blog</a><p class="description">记录自己的成长过程</p></div><div id="nav-menu"><a href="/." class="current"><i class="fa fa-home"> 首页</i></a><a href="/archives/"><i class="fa fa-archive"> 归档</i></a></div></div><div id="layout" class="pure-g"><div class="pure-u-1 pure-u-md-3-4"><div class="content_container"><div class="post"><h1 class="post-title">POSIX 线程编程</h1><div class="post-meta">Apr 28, 2017<span> | </span><span class="category"><a href="/categories/POSIX/">POSIX</a></span><script src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js" async></script><span id="busuanzi_container_page_pv"> | <span id="busuanzi_value_page_pv"></span><span> Hits</span></span></div><div class="clear"><div id="toc" class="toc-article"><div class="toc-title">文章目录</div><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#多线程"><span class="toc-number">1.</span> <span class="toc-text">多线程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#什么是线程？"><span class="toc-number">1.0.1.</span> <span class="toc-text">什么是线程？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Pthreads-简述"><span class="toc-number">1.0.2.</span> <span class="toc-text">Pthreads 简述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Pthreads-简述-1"><span class="toc-number">1.0.3.</span> <span class="toc-text">Pthreads 简述</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#为什么选择-Pthreads？"><span class="toc-number">1.0.3.1.</span> <span class="toc-text">为什么选择 Pthreads？</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#轻量："><span class="toc-number">1.0.3.1.1.</span> <span class="toc-text">轻量：</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#高效通信-数据交换"><span class="toc-number">1.0.3.1.2.</span> <span class="toc-text">高效通信/数据交换</span></a></li></ol></li></ol></li></ol></li></ol></li></ol></div></div><div class="post-content"><h1 id="多线程"><a href="#多线程" class="headerlink" title="多线程"></a>多线程</h1><h3 id="什么是线程？"><a href="#什么是线程？" class="headerlink" title="什么是线程？"></a>什么是线程？</h3><ul>
+<li>从技术上讲,一个线程定义为一个独立的指令流,可以调度运行的操作系统。</li>
+<li>对于软件开发人员，独立于主程序的“过程”的概念可以更好地形容一个线程。</li>
+<li>进一步，想象一个主程序包含多个程序。然后想象所有这些程序能够被调度同时（或由操作系统）独立运行。这就描述了一个多线程程序。</li>
+<li>线程是如何实现的？</li>
+<li><p>在理解线程之前，首先需要了解 UNIX 进程。进程由操作系统创建，需要大量的“开销”。进程包含有关程序资源和程序执行状态的信息，包括：</p>
+<ul>
+<li>Process ID, process group ID, user ID, and group ID</li>
+<li>Environment（运行环境）</li>
+<li>Working directory.（工作目录）</li>
+<li>Program instructions（程序指令）</li>
+<li>Registers（寄存器）</li>
+<li>Stack（栈）</li>
+<li>Heap（堆）</li>
+<li>File descriptors（文件描述符）</li>
+<li>Signal actions（信号作用）</li>
+<li>Shared libraries（共享库）</li>
+<li><p>Inter-process communication tools (such as message queues, pipes, semaphores, or shared memory). （进程间通信工具（如消息队列、管道、信号量、共享内存）。）</p>
+<p><img src="http://qcdn.hjsite.cn/pthread/pthread_2.png" alt=""></p>
+</li>
+</ul>
+</li>
+<li><p>线程使用和存在于这些进程资源中，但可以由操作系统调度，并作为独立实体运行，这主要是因为它们只复制那些使它们能够作为可执行代码存在的基本资源。</p>
+</li>
+<li><p>这个独立的控制流是通过线程维护自己的来完成的：</p>
+<ul>
+<li>Stack pointer（栈指针）</li>
+<li>Registers（寄存器）</li>
+<li>Scheduling properties (such as policy or priority)（调度属性（如策略或优先级））</li>
+<li>Set of pending and blocked signals（挂起和封锁信号集）</li>
+<li>Thread specific data.（线程特定数据）</li>
+</ul>
+</li>
+<li><p>综上所述，在UNIX环境下一个线程：</p>
+<ul>
+<li>存在于进程内并使用进程资源</li>
+<li>只要它的父进程存在并且操作系统支持它，它就有它自己的独立的控制流</li>
+<li>只复制需要被独立调度的资源</li>
+<li>可以与其他线程一样独立地（非独立地）共享进程资源    </li>
+<li>如果父进程死亡或相似的情况下，线程会一起退出</li>
+<li>是“轻量级”的，因为大部分的开销都已经在进程创建时完成</li>
+</ul>
+</li>
+<li><p>因为同一进程中的线程共享资源：</p>
+<ul>
+<li>由一个线程到共享系统资源（如关闭文件）所做的更改将被其他线程收到。</li>
+<li>指向相同的数据的两个指针拥有相同的值。</li>
+<li>会出现读写相同内存位置的情况，因为需要开发人员做显示同步。</li>
+</ul>
+</li>
+</ul>
+<h3 id="Pthreads-简述"><a href="#Pthreads-简述" class="headerlink" title="Pthreads 简述"></a>Pthreads 简述</h3><ul>
+<li>Pthreads 是什么？<ul>
+<li>从历史上看，硬件厂商已经实现了自己的专有版本的线程。这些实现差异很大，使程序员难以开发便携式线程应用程序。</li>
+<li>为了充分利用线程提供的功能，需要一个标准化的编程接口。<ul>
+<li>在 UNIX 系统中，这个接口已经被 IEEE POSIX 1003.1c 标准规定（1995）。</li>
+<li>坚持实现这个标准被称为 POSIX 线程，或 pthreads。</li>
+<li>大多数硬件厂商除了自己专有的 API 现在还提供 pthreads。</li>
+</ul>
+</li>
+<li>POSIX 标准一直在不断演变和修订，其中包括 pthreads 规范。</li>
+<li>pthreads 被定义为一套 C 语言编程的类型和过程调用，以 一个 <strong>pthread.h</strong> 头/包含文件和一个线程库 - 尽管在一些实施方案中，这个库可能是另一个库的一部分，比如 libc。</li>
+</ul>
+</li>
+</ul>
+<h3 id="Pthreads-简述-1"><a href="#Pthreads-简述-1" class="headerlink" title="Pthreads 简述"></a>Pthreads 简述</h3><h4 id="为什么选择-Pthreads？"><a href="#为什么选择-Pthreads？" class="headerlink" title="为什么选择 Pthreads？"></a>为什么选择 Pthreads？</h4><h5 id="轻量："><a href="#轻量：" class="headerlink" title="轻量："></a>轻量：</h5><ul>
+<li>与创建和管理进程相比，创建线程需要的开销更少。管理线程也比管理进程所需的开销更少。</li>
+<li>例如，下面的表格是对 <code>fork()</code> 子程序和 <code>pthread_create()</code> 子程序的计时结果。表格反映了50,000进程/线程创建与时间的关系，单位为：秒，没有做优化。</li>
+<li>注意：不要将系统和用户时间加起来作为真实时间，因为这些多核处理器的 SMP 系统会同时处理这些事情，这些是在本地机器上过去和现在运行的结果。<br><img src="http://qcdn.hjsite.cn/pthread/pthread_3.png" alt=""></li>
+</ul>
+<h5 id="高效通信-数据交换"><a href="#高效通信-数据交换" class="headerlink" title="高效通信/数据交换"></a>高效通信/数据交换</h5><ul>
+<li>使用<code>pthreads</code>最重要的原因是在高性能计算环境下能实现最佳性能。特别在于，如果应用程序使用<code>MPI</code>节点通信，使用<code>pthreads</code>可以提高潜在的性能。</li>
+</ul>
+</div><script type="text/javascript" src="/js/share.js?v=0.0.0" async></script><a data-url="http://yoursite.com/2017/04/28/pthread/" data-id="cj3ycejjl0001kkl3erul3cqb" class="article-share-link">分享到</a><div class="tags"><a href="/tags/Pthreads/">Pthreads</a></div><div class="post-nav"><a href="/2017/06/15/php 获取首字母/" class="pre">PHP 获取中文首字母</a><a href="/2017/04/26/CleanCode_1/" class="next">Clean Code 有意义的命名</a></div></div></div></div><div class="pure-u-1-4 hidden_mid_and_down"><div id="sidebar"><div class="widget"><form action="//www.google.com/search" method="get" accept-charset="utf-8" target="_blank" class="search-form"><input type="text" name="q" maxlength="20" placeholder="Search"/><input type="hidden" name="sitesearch" value="http://yoursite.com"/></form></div><div class="widget"><div class="widget-title"><i class="fa fa-folder-o"> 分类</i></div><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Git/">Git</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java编程思想/">Java编程思想</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Laravel/">Laravel</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/POSIX/">POSIX</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/php/">php</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/ubuntu/">ubuntu</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/代码整洁之道/">代码整洁之道</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/思考/">思考</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/权限管理/">权限管理</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/程序员修炼之道/">程序员修炼之道</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-star-o"> 标签</i></div><div class="tagcloud"><a href="/tags/权限管理/" style="font-size: 15px;">权限管理</a> <a href="/tags/Laravel/" style="font-size: 15px;">Laravel</a> <a href="/tags/Java/" style="font-size: 15px;">Java</a> <a href="/tags/程序员修炼之道/" style="font-size: 15px;">程序员修炼之道</a> <a href="/tags/Git/" style="font-size: 15px;">Git</a> <a href="/tags/php/" style="font-size: 15px;">php</a> <a href="/tags/注释/" style="font-size: 15px;">注释</a> <a href="/tags/CleanCode/" style="font-size: 15px;">CleanCode</a> <a href="/tags/Pthreads/" style="font-size: 15px;">Pthreads</a></div></div><div class="widget"><div class="widget-title"><i class="fa fa-file-o"> 最新文章</i></div><ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2017/06/15/php 获取首字母/">PHP 获取中文首字母</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/04/28/pthread/">POSIX 线程编程</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/04/26/CleanCode_1/">Clean Code 有意义的命名</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/04/25/注释的思考/">注释的一点思考</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/03/31/ThinkInJava-操作符/">Java编程思想 - 操作符</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/03/27/RBAC/">RBAC权限管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/03/26/ThinkInJava-一切都是对象/">Java编程思想 - 一切都是对象</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/03/26/程序员修炼之道-第一章/">程序员修炼之道--注重实效的哲学</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/03/26/Think in Java - 对象导论笔记/">Java编程思想 - 对象导论</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/03/26/php 排查技巧笔记/">PHP Debug 笔记</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-external-link"> 友情链接</i></div></div></div></div><div class="pure-u-1 pure-u-md-3-4"><div id="footer">© <a href="/." rel="nofollow">Hj's Blog.</a> Powered by<a rel="nofollow" target="_blank" href="https://hexo.io"> Hexo.</a><a rel="nofollow" target="_blank" href="https://github.com/tufu9441/maupassant-hexo"> Theme</a> by<a rel="nofollow" target="_blank" href="https://github.com/pagecho"> Cho.</a></div></div></div><a id="rocket" href="#top" class="show"></a><script type="text/javascript" src="/js/totop.js?v=0.0.0" async></script><script type="text/javascript" src="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.pack.js" async></script><script type="text/javascript" src="/js/fancybox.js?v=0.0.0" async></script><link rel="stylesheet" type="text/css" href="/css/jquery.fancybox.css?v=0.0.0"><script type="text/javascript" src="/js/codeblock-resizer.js?v=0.0.0"></script><script type="text/javascript" src="/js/smartresize.js?v=0.0.0"></script></div></body></html>
